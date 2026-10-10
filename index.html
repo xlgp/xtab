@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>新标签页</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- 背景层：图片 / 渐变 -->
+  <div id="bg-layer"></div>
+
+  <!-- 效果层：昼夜叠加 + 天气粒子 -->
+  <div id="fx-layer">
+    <div id="daynight-overlay"></div>
+    <canvas id="weather-canvas"></canvas>
+  </div>
+
+  <!-- 内容层：时钟 / 搜索 / 天气 / 链接 -->
+  <main id="content">
+    <div id="clock">
+      <div id="clock-time">--:--:--</div>
+      <div id="clock-date"></div>
+    </div>
+
+    <form id="search-form" autocomplete="off">
+      <div id="search-engine" role="button" tabindex="0" title="切换搜索引擎"></div>
+      <input id="search-input" type="text" placeholder="搜索…" aria-label="搜索" />
+      <ul id="search-suggestions" hidden></ul>
+    </form>
+
+    <div id="weather">
+      <span id="weather-temp">--°</span>
+      <span id="weather-desc">加载中…</span>
+      <span id="weather-city"></span>
+    </div>
+
+    <section id="quicklinks" aria-label="快捷链接"></section>
+  </main>
+
+  <button id="settings-btn" type="button" aria-label="设置" title="设置">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  </button>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

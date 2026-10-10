@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "XTab - 自定义新标签页",
+  "version": "0.1.0",
+  "description": "自主设计的标签页：多引擎搜索、秒级时钟、天气、昼夜与天气效果、快捷链接",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "sw.js"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://api.open-meteo.com/*",
+    "https://geocoding-api.open-meteo.com/*",
+    "https://www.google.com/*",
+    "https://picsum.photos/*",
+    "https://www.baidu.com/*"
+  ]
+}

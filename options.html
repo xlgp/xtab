@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XTab 设置</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <header>
+    <h1>XTab 设置</h1>
+    <p class="hint">改动保存后，刷新新标签页即可生效。</p>
+  </header>
+
+  <section class="card">
+    <h2>搜索</h2>
+    <div id="engine-list" class="list"></div>
+    <button id="add-engine" class="btn">+ 添加搜索引擎</button>
+    <p style="margin:14px 0 4px">默认引擎</p>
+    <select id="default-engine" class="inp"></select>
+    <label class="ck"><input type="checkbox" id="open-newtab" /> 在新标签页打开搜索结果</label>
+  </section>
+
+  <section class="card">
+    <h2>时钟</h2>
+    <label class="ck"><input type="checkbox" id="clk-sec" /> 显示秒</label>
+    <label class="ck"><input type="checkbox" id="clk-date" /> 显示日期 / 星期</label>
+  </section>
+
+  <section class="card">
+    <h2>背景</h2>
+    <label class="ck">类型
+      <select id="bg-type" class="inp">
+        <option value="online">在线随机图</option>
+        <option value="gradient">纯色渐变</option>
+        <option value="custom">自定义（暂用渐变兜底）</option>
+      </select>
+    </label>
+    <label class="ck">在线图切换间隔（分钟，0 = 每次打开都换）
+      <input type="number" id="bg-interval" class="inp" min="0" max="1440" />
+    </label>
+    <label class="ck">模糊 <span id="bg-blur-v"></span>
+      <input type="range" id="bg-blur" min="0" max="20" step="1" />
+    </label>
+    <label class="ck">亮度 <span id="bg-bright-v"></span>
+      <input type="range" id="bg-bright" min="0.3" max="1" step="0.02" />
+    </label>
+    <label class="ck"><input type="checkbox" id="bg-vig" /> 暗角（提升文字可读性）</label>
+    <div class="ck">
+      渐变颜色
+      <input type="color" id="bg-grad0" />
+      <input type="color" id="bg-grad1" />
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>天气</h2>
+    <label class="ck">城市
+      <input type="text" id="w-city" class="inp" placeholder="如 杭州" />
+    </label>
+    <label class="ck">刷新间隔（分钟）
+      <input type="number" id="w-int" class="inp" min="5" max="240" />
+    </label>
+    <label class="ck"><input type="checkbox" id="w-geo" /> 使用定位（授权后优先于城市）</label>
+  </section>
+
+  <section class="card">
+    <h2>快捷链接</h2>
+    <div id="link-list" class="list"></div>
+    <button id="add-link" class="btn">+ 添加链接</button>
+  </section>
+
+  <div class="savebar">
+    <button id="save" class="btn primary">保存</button>
+    <span id="saved" class="saved"></span>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

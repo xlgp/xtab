@@ -1,0 +1,253 @@
+:root {
+  --text: #ffffff;
+  --text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--text);
+  background: #0b1020;
+}
+
+/* 三层结构：背景 → 效果 → 内容 */
+#bg-layer,
+#fx-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#bg-layer {
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  transition: filter 0.6s ease;
+}
+
+#fx-layer {
+  z-index: 1;
+  pointer-events: none;
+}
+
+#daynight-overlay {
+  position: absolute;
+  inset: 0;
+  transition: background 2s ease;
+}
+
+#weather-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px;
+  text-shadow: var(--text-shadow);
+}
+
+/* 时钟 */
+#clock {
+  text-align: center;
+  user-select: none;
+}
+#clock-time {
+  font-size: clamp(48px, 9vw, 104px);
+  font-weight: 300;
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+#clock-date {
+  margin-top: 8px;
+  font-size: clamp(14px, 2vw, 20px);
+  opacity: 0.85;
+}
+
+/* 搜索 */
+#search-form {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(620px, 90vw);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 6px 8px 6px 16px;
+}
+#search-engine {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  white-space: nowrap;
+  cursor: pointer;
+}
+#search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 17px;
+  padding: 10px 8px;
+}
+#search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+#search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  background: rgba(20, 23, 34, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  z-index: 20;
+}
+#search-suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+#search-suggestions::-webkit-scrollbar-track {
+  background: transparent;
+}
+#search-suggestions::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+}
+#search-suggestions li {
+  padding: 10px 18px 10px 38px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E");
+  background-position: 14px center;
+  background-repeat: no-repeat;
+}
+#search-suggestions li:hover,
+#search-suggestions li.active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+#search-suggestions[hidden] {
+  display: none;
+}
+
+/* 天气 */
+#weather {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+}
+#weather-temp {
+  font-size: 26px;
+  font-weight: 500;
+}
+#weather-city {
+  opacity: 0.8;
+}
+
+/* 快捷链接 */
+#quicklinks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 84px);
+  gap: 18px;
+  justify-content: center;
+  max-width: min(620px, 92vw);
+}
+.ql-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 12px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.ql-item:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+}
+.ql-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.14);
+  background-position: center;
+  background-size: 60%;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.ql-name {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: var(--text-shadow);
+}
+
+/* 右下角设置图标：仅图标，默认半透明，悬停清晰 */
+#settings-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text);
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+#settings-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+#settings-btn svg {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
