@@ -288,3 +288,41 @@ body {
   height: 24px;
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
 }
+
+#bg-toast {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+#bg-toast.show {
+  opacity: 1;
+}
+#bg-toast .spin {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: bg-spin 0.7s linear infinite;
+}
+@keyframes bg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -26,10 +26,12 @@ async function fetchNewImage(bg, b) {
     const blob = await r.blob();
     await saveCachedImage(blob);
     bg.style.backgroundImage = `url("${URL.createObjectURL(blob)}")`;
+    applyFilters(bg, b);
+    return true;
   } catch {
     // 失败时保持当前显示（缓存图或渐变），不降级成错误图
+    return false;
   }
-  applyFilters(bg, b);
 }
 
 export async function applyBackground(settings) {
@@ -75,4 +77,13 @@ export async function applyBackground(settings) {
   if (stale) {
     fetchNewImage(bg, b);
   }
+}
+
+// 手动换图：仅「在线图」模式生效，立即拉取新图并刷新缓存（绕过 staleness 判断）。
+// 渐变 / 自定义图无网络图可换，直接忽略。返回是否成功换图。
+export async function refreshBackground(settings) {
+  const bg = document.getElementById("bg-layer");
+  const b = settings?.background;
+  if (!bg || !b || b.type !== "online") return false;
+  return fetchNewImage(bg, b);
 }
