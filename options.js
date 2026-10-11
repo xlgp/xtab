@@ -25,6 +25,7 @@ async function init() {
   buildClock();
   buildBackground();
   buildWeather();
+  buildPoetry();
   buildLinks();
   $("save").onclick = save;
 }
@@ -92,6 +93,20 @@ function buildWeather() {
   $("w-geo").checked = w.useGeolocation;
 }
 
+function buildPoetry() {
+  const p = settings.poetry;
+  $("po-enabled").checked = p.enabled !== false;
+  const sel = $("po-int");
+  const v = p.interval || 30;
+  if ([...sel.options].some((o) => o.value === String(v))) {
+    sel.value = v;
+  } else {
+    // 历史保存过非预设值：补一个「自定义」选项，避免被静默改掉
+    sel.append(el("option", { value: v, textContent: v + " 分钟（自定义）" }));
+    sel.value = v;
+  }
+}
+
 function buildLinks() {
   const list = $("link-list");
   list.innerHTML = "";
@@ -154,6 +169,8 @@ async function save() {
   settings.weather.city = city || settings.weather.city;
   settings.weather.updateInterval = +$("w-int").value || 30;
   settings.weather.useGeolocation = $("w-geo").checked;
+  settings.poetry.enabled = $("po-enabled").checked;
+  settings.poetry.interval = +$("po-int").value || 30;
   settings.quickLinks = links;
 
   await saveSettings(settings);

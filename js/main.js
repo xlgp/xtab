@@ -7,6 +7,7 @@ import { applyBackground } from "./modules/background.js";
 import { getWeather, codeToInfo, fmtSun } from "./modules/weather.js";
 import { applyDayNight, getPhase, WeatherFX } from "./modules/effects.js";
 import { renderQuickLinks } from "./modules/quicklinks.js";
+import { initPoetry } from "./modules/poetry.js";
 
 const settings = await loadSettings();
 
@@ -14,6 +15,7 @@ initClock(settings);
 initSearch(settings);
 applyBackground(settings);
 renderQuickLinks(settings);
+initPoetry(settings);
 
 const fx = new WeatherFX();
 let weatherData = null;

@@ -33,6 +33,11 @@ export const DEFAULTS = {
     updateInterval: 30, // 分钟
   },
 
+  poetry: {
+    enabled: true, // 是否显示诗词
+    interval: 30, // 分钟，周期切换一首
+  },
+
   quickLinks: [
     { name: "GitHub", url: "https://github.com/xlgp", icon: "https://github.githubassets.com/favicons/favicon.svg" },
     { name: "知乎", url: "https://zhihu.com", icon: "https://www.zhihu.com/favicon.ico" },
