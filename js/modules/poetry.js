@@ -32,7 +32,10 @@ export async function initPoetry(settings) {
     current = poem;
     const apply = () => {
       contentEl.textContent = poem.content;
-      originEl.textContent = `${poem.origin || ""}${poem.author ? " · " + poem.author : ""}`;
+      // 标题加书名号《》框定边界，避免标题内部「·」与分隔符混淆；作者置其后以空格隔开。
+      const title = poem.origin ? `《${poem.origin}》` : "";
+      const author = poem.author || "";
+      originEl.textContent = [title, author].filter(Boolean).join(" ");
     };
     if (!animate) {
       apply();
