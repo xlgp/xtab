@@ -69,6 +69,7 @@ body {
   text-align: center;
   user-select: none;
 }
+
 #clock-time {
   font-size: clamp(48px, 9vw, 104px);
   font-weight: 300;
@@ -76,6 +77,7 @@ body {
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+
 #clock-date {
   margin-top: 8px;
   font-size: clamp(14px, 2vw, 20px);
@@ -96,6 +98,7 @@ body {
   border-radius: 999px;
   padding: 6px 8px 6px 16px;
 }
+
 #search-engine {
   font-size: 13px;
   font-weight: 500;
@@ -105,6 +108,7 @@ body {
   white-space: nowrap;
   cursor: pointer;
 }
+
 #search-input {
   flex: 1;
   border: none;
@@ -114,15 +118,17 @@ body {
   font-size: 17px;
   padding: 10px 8px;
 }
+
 #search-input::placeholder {
   color: rgba(255, 255, 255, 0.7);
 }
+
 #search-suggestions {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  max-height: 320px;
+  max-height: 360px;
   overflow-y: auto;
   margin: 0;
   padding: 8px 0;
@@ -136,16 +142,20 @@ body {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   z-index: 20;
 }
+
 #search-suggestions::-webkit-scrollbar {
   width: 6px;
 }
+
 #search-suggestions::-webkit-scrollbar-track {
   background: transparent;
 }
+
 #search-suggestions::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.22);
   border-radius: 3px;
 }
+
 #search-suggestions li {
   padding: 10px 18px 10px 38px;
   font-size: 14px;
@@ -155,10 +165,12 @@ body {
   background-position: 14px center;
   background-repeat: no-repeat;
 }
+
 #search-suggestions li:hover,
 #search-suggestions li.active {
   background-color: rgba(255, 255, 255, 0.12);
 }
+
 #search-suggestions[hidden] {
   display: none;
 }
@@ -170,12 +182,26 @@ body {
   gap: 10px;
   font-size: 15px;
 }
+
 #weather-temp {
   font-size: 26px;
   font-weight: 500;
 }
+
 #weather-city {
   opacity: 0.8;
+}
+
+#poetry {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  font-size: initial;
+  flex-direction: column;
+}
+
+#poetry .poetry-subtitle {
+  font-size: small;
 }
 
 /* 快捷链接 */
@@ -186,6 +212,7 @@ body {
   justify-content: center;
   max-width: min(620px, 92vw);
 }
+
 .ql-item {
   display: flex;
   flex-direction: column;
@@ -198,10 +225,12 @@ body {
   border-radius: 12px;
   transition: background 0.15s ease, transform 0.15s ease;
 }
+
 .ql-item:hover {
   background: rgba(255, 255, 255, 0.16);
   transform: translateY(-2px);
 }
+
 .ql-icon {
   width: 44px;
   height: 44px;
@@ -214,6 +243,7 @@ body {
   backdrop-filter: blur(8px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
+
 .ql-name {
   max-width: 80px;
   overflow: hidden;
@@ -242,10 +272,12 @@ body {
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
 #settings-btn:hover {
   opacity: 1;
   transform: scale(1.1);
 }
+
 #settings-btn svg {
   width: 24px;
   height: 24px;
