@@ -87,3 +87,16 @@ export async function refreshBackground(settings) {
   if (!bg || !b || b.type !== "online") return false;
   return fetchNewImage(bg, b);
 }
+
+// 周期性换图：在线图模式下，按 onlineInterval 分钟静默拉取新图（不弹提示）。
+// onlineInterval<=0 表示「每次打开都换」，不启定时器；非 online 类型也不启。
+export function startBackgroundRotation(settings) {
+  const b = settings?.background;
+  if (!b || b.type !== "online") return;
+  const intervalMin = Number(b.onlineInterval) || 0;
+  if (intervalMin <= 0) return;
+  setInterval(async () => {
+    const bg = document.getElementById("bg-layer");
+    if (bg) await fetchNewImage(bg, b);
+  }, intervalMin * 60 * 1000);
+}

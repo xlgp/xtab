@@ -3,7 +3,7 @@
 import { loadSettings } from "./modules/settings.js";
 import { initClock } from "./modules/clock.js";
 import { initSearch } from "./modules/search.js";
-import { applyBackground, refreshBackground } from "./modules/background.js";
+import { applyBackground, refreshBackground, startBackgroundRotation } from "./modules/background.js";
 import { getWeather, codeToInfo, fmtSun } from "./modules/weather.js";
 import { applyDayNight, getPhase, WeatherFX } from "./modules/effects.js";
 import { renderQuickLinks } from "./modules/quicklinks.js";
@@ -14,27 +14,12 @@ const settings = await loadSettings();
 initClock(settings);
 initSearch(settings);
 applyBackground(settings);
+startBackgroundRotation(settings);
 renderQuickLinks(settings);
 initPoetry(settings);
 
 const fx = new WeatherFX();
 let weatherData = null;
-
-function paintWeather(w) {
-  const tempEl = document.getElementById("weather-temp");
-  const descEl = document.getElementById("weather-desc");
-  const cityEl = document.getElementById("weather-city");
-  if (!w) {
-    tempEl.textContent = "--°";
-    descEl.textContent = "天气获取失败";
-    cityEl.textContent = settings.weather.city;
-    return;
-  }
-  const [text] = codeToInfo(w.code);
-  tempEl.textContent = `${w.temp}°`;
-  descEl.textContent = text;
-  cityEl.textContent = w.city;
-}
 
 function updateDayNight() {
   if (!weatherData || !weatherData.sunrise) {
@@ -57,7 +42,6 @@ function updateEffect() {
 
 async function refreshWeather() {
   weatherData = await getWeather(settings);
-  paintWeather(weatherData);
   updateDayNight();
   updateEffect();
 }
