@@ -19,6 +19,7 @@ body {
 
 /* 三层结构：背景 → 效果 → 内容 */
 #bg-layer,
+#bg-layer-2,
 #fx-layer {
   position: fixed;
   inset: 0;
@@ -26,11 +27,16 @@ body {
   height: 100%;
 }
 
-#bg-layer {
+#bg-layer,
+#bg-layer-2 {
   z-index: 0;
   background-size: cover;
   background-position: center;
-  transition: filter 0.6s ease;
+  transition: opacity 0.8s ease, filter 0.6s ease;
+}
+
+#bg-layer-2 {
+  opacity: 0;
 }
 
 #fx-layer {
