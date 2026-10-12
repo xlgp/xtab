@@ -19,9 +19,22 @@ const PHASE_BG = {
   dusk: "rgba(255,110,60,0.42)",
 };
 
+// 面板色：相位色叠在基础面板底色 rgba(20,23,34,0.92) 上的合成结果，
+// 供搜索建议列表等前景面板随昼夜联动（通过 CSS 变量 --phase-panel 消费）。
+const PHASE_PANEL_BG = {
+  night: "rgba(10,14,39,0.99)",
+  dawn: "rgba(107,70,55,0.95)",
+  day: "rgba(35,38,48,0.92)",
+  dusk: "rgba(124,61,45,0.95)",
+};
+
 export function applyDayNight(phase) {
   const el = document.getElementById("daynight-overlay");
   el.style.background = PHASE_BG[phase] || PHASE_BG.day;
+  document.documentElement.style.setProperty(
+    "--phase-panel",
+    PHASE_PANEL_BG[phase] || PHASE_PANEL_BG.day
+  );
 }
 
 // Canvas 粒子系统：一种效果同时只跑一个实例

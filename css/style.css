@@ -139,7 +139,9 @@ body {
   margin: 0;
   padding: 8px 0;
   list-style: none;
-  background: rgba(20, 23, 34, 0.92);
+  /* 随昼夜相位联动（--phase-panel 由 effects.js 的 applyDayNight 写入） */
+  background-color: var(--phase-panel, rgba(20, 23, 34, 0.92));
+  transition: background-color 2s ease;
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(24px);
   border-radius: 18px;
