@@ -5,7 +5,7 @@ import { initClock } from "./modules/clock.js";
 import { initSearch } from "./modules/search.js";
 import { applyBackground, refreshBackground, startBackgroundRotation } from "./modules/background.js";
 import { getWeather, codeToInfo, fmtSun } from "./modules/weather.js";
-import { applyDayNight, getPhase, WeatherFX } from "./modules/effects.js";
+import { applyDayNight, getPhase, WeatherFX, initSky, updateSky } from "./modules/effects.js";
 import { renderQuickLinks } from "./modules/quicklinks.js";
 import { initPoetry } from "./modules/poetry.js";
 
@@ -19,19 +19,28 @@ renderQuickLinks(settings);
 initPoetry(settings);
 
 const fx = new WeatherFX();
+initSky();
 let weatherData = null;
 
+// 首屏先用兜底时刻渲染天空，天气返回后 refreshWeather 会再校正
+updateDayNight();
+
+// 昼夜/天空驱动：天气数据缺失时按 6:00/18:00 兜底，日月照常运转
 function updateDayNight() {
-  if (!weatherData || !weatherData.sunrise) {
-    applyDayNight("night");
-    return;
+  const now = new Date();
+  let sr, ss;
+  if (weatherData && weatherData.sunrise) {
+    sr = fmtSun(weatherData.sunrise);
+    ss = fmtSun(weatherData.sunset);
+  } else {
+    sr = new Date(now);
+    sr.setHours(6, 0, 0, 0);
+    ss = new Date(now);
+    ss.setHours(18, 0, 0, 0);
   }
-  const phase = getPhase(
-    new Date(),
-    fmtSun(weatherData.sunrise),
-    fmtSun(weatherData.sunset)
-  );
-  applyDayNight(phase);
+  applyDayNight(getPhase(now, sr, ss)); // 面板等粗粒度联动
+  const effect = weatherData ? codeToInfo(weatherData.code)[1] : "clear";
+  updateSky(now, sr, ss, effect); // 日月位置 + 连续天色 + 星点
 }
 
 function updateEffect() {
@@ -94,3 +103,10 @@ refreshWeather();
 const intervalMs = Math.max(5, settings.weather.updateInterval) * 60 * 1000;
 setInterval(refreshWeather, intervalMs);
 setInterval(updateDayNight, 60 * 1000);
+
+// 窗口尺寸变化后重算椭圆轨道与日月位置（星点由 initSky 内部重建）
+let skyResizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(skyResizeTimer);
+  skyResizeTimer = setTimeout(updateDayNight, 200);
+});

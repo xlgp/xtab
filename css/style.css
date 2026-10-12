@@ -47,12 +47,101 @@ body {
 #daynight-overlay {
   position: absolute;
   inset: 0;
+  z-index: 0;
   transition: background 2s ease;
+}
+
+/* 日月天空层：overlay 之上（日月不被夜色压暗）、天气粒子之下（雨雪落在日月之前） */
+#sky {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+#sun,
+#moon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  opacity: 0;
+  will-change: transform;
+  transition:
+    transform 61s linear,
+    opacity 1.4s ease,
+    box-shadow 2s ease;
+}
+
+#sun {
+  width: 84px;
+  height: 84px;
+  background: radial-gradient(
+    circle,
+    #fffdf0 0%,
+    #fff3c0 30%,
+    #ffd76a 55%,
+    rgba(255, 190, 100, 0.55) 70%,
+    rgba(255, 170, 80, 0) 78%
+  );
+}
+
+#moon {
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 38% 36%,
+    #fffef7 0%,
+    #f0ebda 45%,
+    #d8d2bd 78%,
+    #c6c0aa 100%
+  );
+}
+
+/* 月相：与月面同大的暗盘横向平移，被裁出的亮区即当前相位（明暗交界为圆弧） */
+#moon-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0a0f28 0%, #070b1e 100%);
+  opacity: 0.96;
+  transition: transform 61s linear;
+}
+
+.stars {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+
+#stars-a {
+  animation: twinkle 3.4s ease-in-out infinite;
+}
+
+#stars-b {
+  animation: twinkle 4.9s ease-in-out infinite 1.2s;
+}
+
+@keyframes twinkle {
+  50% {
+    filter: brightness(0.5);
+  }
+}
+
+/* 首次定位不播过渡，避免从 (0,0) 飞入 */
+.sky-noanim {
+  transition: none !important;
 }
 
 #weather-canvas {
   position: absolute;
   inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
 }

@@ -1,4 +1,4 @@
-// 效果层：昼夜叠加（随日出日落变化色调）+ 天气粒子（雨/雪/雾/雷）。
+// 效果层：日月天空（椭圆轨道 + 连续天色）+ 昼夜面板联动 + 天气粒子（雨/雪/雾/雷）。
 
 // 根据当前时间 + 日出日落判定阶段
 export function getPhase(now, sunrise, sunset) {
@@ -12,13 +12,6 @@ export function getPhase(now, sunrise, sunset) {
   return "night";
 }
 
-const PHASE_BG = {
-  night: "rgba(8,12,40,0.85)",
-  dawn: "rgba(255,150,90,0.35)",
-  day: "rgba(255,255,255,0.06)",
-  dusk: "rgba(255,110,60,0.42)",
-};
-
 // 面板色：相位色叠在基础面板底色 rgba(20,23,34,0.92) 上的合成结果，
 // 供搜索建议列表等前景面板随昼夜联动（通过 CSS 变量 --phase-panel 消费）。
 const PHASE_PANEL_BG = {
@@ -29,12 +22,181 @@ const PHASE_PANEL_BG = {
 };
 
 export function applyDayNight(phase) {
-  const el = document.getElementById("daynight-overlay");
-  el.style.background = PHASE_BG[phase] || PHASE_BG.day;
+  // 只负责面板等粗粒度联动；天空渐变色由 updateSky 按高度角连续驱动
   document.documentElement.style.setProperty(
     "--phase-panel",
     PHASE_PANEL_BG[phase] || PHASE_PANEL_BG.day
   );
+}
+
+// ===== 日月天空 =====
+// 轨道：椭圆，圆心 = 页面底部中心，横半轴 = 页宽/2，纵半轴 = 页高×0.85。
+// 太阳/月亮角度由真实日出日落时刻驱动（冬夏昼夜长短自然不同速）。
+// 天色为太阳带符号高度角 hs=sinθ 的连续插值：hs>0 白天，-0.18<hs≤0 晨昏蒙影，≤-0.18 深夜。
+
+const SKY_NIGHT = [8, 12, 40, 0.85];
+const SKY_WARM_AM = [255, 150, 90, 0.45]; // 朝霞偏柔
+const SKY_WARM_PM = [255, 105, 55, 0.5]; // 晚霞偏烈
+const SKY_PALE = [255, 190, 130, 0.18];
+const SKY_DAY = [255, 255, 255, 0.06];
+const SUN_GLOW_LOW = [255, 165, 80]; // 近地平线：橙
+const SUN_GLOW_HIGH = [255, 224, 150]; // 正午：白亮
+
+// 天气对日月光晕的衰减 & 星星可见度
+const WEATHER_DIM = { clear: 1, clouds: 0.55, fog: 0.3, rain: 0.25, snow: 0.35, thunder: 0.15 };
+const STAR_VIS = { clear: 1, clouds: 0.45, fog: 0.12, rain: 0.1, snow: 0.15, thunder: 0.08 };
+
+function clamp01(v) {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+function mixColor(a, b, t) {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+    a[3] + (b[3] - a[3]) * t,
+  ];
+}
+
+function rgba(c) {
+  return `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${c[3].toFixed(3)})`;
+}
+
+// 天色：hs 带符号高度角（白天>0，地平线=0，夜晚<0）
+function skyTint(hs, isMorning) {
+  const warm = isMorning ? SKY_WARM_AM : SKY_WARM_PM;
+  if (hs <= 0) {
+    // 晨昏蒙影：接近地平线时夜色渐染暖色（朝霞初现 / 落日余晖）
+    const tw = clamp01(1 + hs / 0.18);
+    return mixColor(SKY_NIGHT, warm, tw);
+  }
+  if (hs < 0.18) return mixColor(warm, SKY_PALE, hs / 0.18);
+  if (hs < 0.45) return mixColor(SKY_PALE, SKY_DAY, (hs - 0.18) / 0.27);
+  return SKY_DAY;
+}
+
+// 月相：朔望月周期 29.530588853 天，以已知朔（2000-01-06 18:14 UTC）为基准算月龄
+const SYNODIC = 29.530588853;
+const NEW_MOON_2000 = Date.UTC(2000, 0, 6, 18, 14);
+
+// 返回相位 f：0=朔（新月），0.25=上弦，0.5=望（满月），0.75=下弦
+function moonPhase(now) {
+  const days = (now.getTime() - NEW_MOON_2000) / 86400000;
+  let age = days % SYNODIC;
+  if (age < 0) age += SYNODIC;
+  return age / SYNODIC;
+}
+
+function buildStars(el, n) {
+  const w = window.innerWidth;
+  const h = window.innerHeight * 0.9;
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const x = (Math.random() * w) | 0;
+    const y = (Math.random() * h) | 0;
+    const big = Math.random() > 0.85 ? 1 : 0;
+    pts.push(`${x}px ${y}px 0 ${big}px rgba(255,255,255,${(0.35 + Math.random() * 0.55).toFixed(2)})`);
+  }
+  el.style.boxShadow = pts.join(",");
+}
+
+let sky = null; // {overlay, sun, moon, starsA, starsB}
+let skyFirst = true; // 首次定位不播过渡
+
+export function initSky() {
+  const els = {
+    overlay: document.getElementById("daynight-overlay"),
+    sun: document.getElementById("sun"),
+    moon: document.getElementById("moon"),
+    shadow: document.getElementById("moon-shadow"),
+    starsA: document.getElementById("stars-a"),
+    starsB: document.getElementById("stars-b"),
+  };
+  if (!els.sun || !els.moon || !els.starsA) return;
+  sky = els;
+  const rebuild = () => {
+    buildStars(sky.starsA, 70);
+    buildStars(sky.starsB, 46);
+  };
+  rebuild();
+  let t;
+  window.addEventListener("resize", () => {
+    clearTimeout(t);
+    t = setTimeout(rebuild, 250);
+  });
+}
+
+export function updateSky(now, sunrise, sunset, effect = "clear") {
+  if (!sky) return;
+  const { overlay, sun, moon, shadow, starsA, starsB } = sky;
+  const targets = [sun, moon, shadow, starsA, starsB, overlay].filter(Boolean);
+  if (skyFirst) targets.forEach((el) => el.classList.add("sky-noanim"));
+
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const cx = W / 2;
+  const cy = H;
+  const rx = W / 2;
+  const ry = H * 0.85; // 顶点距顶 15% 页高，任何宽高比都不会飞出去
+
+  // 太阳：p 允许超出 [0,1]，θ 连续 → hs = sinθ 带符号高度角
+  const dayMs = sunset.getTime() - sunrise.getTime();
+  const p = (now.getTime() - sunrise.getTime()) / dayMs;
+  const th = Math.PI * (1 - p);
+  const hs = Math.sin(th);
+  const isMorning = p < 0.5;
+
+  // 月亮：夜晚进度（夜长 = 24h - 昼长）
+  const nightMs = 24 * 3600 * 1000 - dayMs;
+  let pm = -1;
+  if (p >= 1) pm = (now.getTime() - sunset.getTime()) / nightMs; // 日落后
+  else if (p <= 0) pm = (now.getTime() - (sunset.getTime() - 86400000)) / nightMs; // 日出前
+  const inNight = pm >= 0 && pm <= 1;
+  const thm = Math.PI * (1 - clamp01(pm));
+  const hm = inNight ? Math.sin(thm) : 0;
+
+  // 位置（椭圆参数方程；θ: π→0，左地平线 → 顶点 → 右地平线）
+  sun.style.transform = `translate(${cx + rx * Math.cos(th)}px, ${cy - ry * hs}px) translate(-50%,-50%)`;
+  if (inNight) {
+    moon.style.transform = `translate(${cx + rx * Math.cos(thm)}px, ${cy - ry * hm}px) translate(-50%,-50%)`;
+  }
+
+  // 天色 overlay 连续插值
+  overlay.style.background = rgba(skyTint(hs, isMorning));
+
+  // 太阳：贴地平线淡入/出，光晕近地平线更大更橙
+  const dim = WEATHER_DIM[effect] ?? 1;
+  const up = clamp01(hs);
+  sun.style.opacity = clamp01(hs / 0.05) * (0.55 + 0.45 * dim);
+  const gc = mixColor(SUN_GLOW_LOW, SUN_GLOW_HIGH, up);
+  const ga = (0.3 + 0.45 * (1 - up)) * dim;
+  const gs = 90 + 70 * (1 - up);
+  sun.style.boxShadow = `0 0 ${gs | 0}px ${(gs * 0.45) | 0}px ${rgba([gc[0], gc[1], gc[2], ga])}`;
+
+  // 月亮：相位（暗盘平移裁出亮区）+ 亮区比例 k 决定亮度与光晕
+  const f = moonPhase(now);
+  const k = (1 - Math.cos(2 * Math.PI * f)) / 2; // 被照亮比例 0~1
+  if (shadow) {
+    // 上弦前暗盘左移（亮在右），下弦后暗盘右移（亮在左）；0=全遮（朔），±100%=全亮（望）
+    const pct = f < 0.5 ? -200 * f : 200 * (1 - f);
+    shadow.style.transform = `translateX(${pct.toFixed(2)}%)`;
+  }
+  moon.style.opacity = inNight ? clamp01(hm / 0.06) * (0.35 + 0.65 * k) * (0.5 + 0.5 * dim) : 0;
+  moon.style.boxShadow = inNight
+    ? `0 0 ${(26 + 46 * k) | 0}px ${(10 + 16 * k) | 0}px rgba(190,205,255,${((0.08 + 0.26 * k) * dim).toFixed(3)})`
+    : "none";
+
+  // 星星：入夜渐显，阴天衰减
+  const sv = clamp01((-hs - 0.03) / 0.15) * (STAR_VIS[effect] ?? 1);
+  starsA.style.opacity = sv;
+  starsB.style.opacity = sv * 0.8;
+
+  if (skyFirst) {
+    void sun.offsetWidth; // 强制 reflow 后再放开过渡
+    targets.forEach((el) => el.classList.remove("sky-noanim"));
+    skyFirst = false;
+  }
 }
 
 // Canvas 粒子系统：一种效果同时只跑一个实例
