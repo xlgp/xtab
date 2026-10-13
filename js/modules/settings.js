@@ -38,6 +38,10 @@ export const DEFAULTS = {
     interval: 30, // 分钟，周期切换一首
   },
 
+  lunar: {
+    enabled: true, // 左上角显示农历 + 干支（年/月/日三柱）
+  },
+
   quickLinks: [
     { name: "GitHub", url: "https://github.com/xlgp", icon: "https://github.githubassets.com/favicons/favicon.svg" },
     { name: "知乎", url: "https://zhihu.com", icon: "https://www.zhihu.com/favicon.ico" },

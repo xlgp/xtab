@@ -1,14 +1,14 @@
 // 时钟：秒级刷新，用 rAF 对齐到整秒边界，避免 setInterval 累积漂移。
 // 休眠唤醒后 rAF 自动校正，不丢秒。
 
-import { getLunarDateText } from "./lunar.js";
+import { getLunarBadgeText } from "./lunar.js";
 
 const WEEK = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
 export function initClock(settings) {
   const timeEl = document.getElementById("clock-time");
   const dateEl = document.getElementById("clock-date");
-  const lunarEl = document.getElementById("clock-lunar");
+  const lunarEl = document.getElementById("lunar-badge");
   let lastLunarKey = "";
 
   function pad(n) {
@@ -27,14 +27,18 @@ export function initClock(settings) {
 
     if (settings.clock.showDate) {
       dateEl.textContent = `${y}年${m}月${d}日 ${WEEK[now.getDay()]}`;
-      // 农历按天缓存，仅日期变化时重算
+    } else {
+      dateEl.textContent = "";
+    }
+
+    // 左上角农历 + 干支徽标：按天缓存，仅日期变化时重算
+    if (settings.lunar?.enabled) {
       const key = `${y}-${m}-${d}`;
       if (key !== lastLunarKey) {
         lastLunarKey = key;
-        lunarEl.textContent = getLunarDateText(now);
+        lunarEl.textContent = getLunarBadgeText(now);
       }
-    } else {
-      dateEl.textContent = "";
+    } else if (lunarEl.textContent) {
       lunarEl.textContent = "";
     }
 

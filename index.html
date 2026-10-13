@@ -28,7 +28,6 @@
     <div id="clock">
       <div id="clock-time">--:--:--</div>
       <div id="clock-date"></div>
-      <div id="clock-lunar"></div>
     </div>
 
     <form id="search-form" autocomplete="off">
@@ -46,6 +45,9 @@
   </main>
 
   <div id="bg-toast" role="status" aria-live="polite"></div>
+
+  <!-- 左上角：农历（汉字数字年月日）+ 干支三柱（年/月/日） -->
+  <div id="lunar-badge" aria-hidden="true"></div>
 
   <button id="settings-btn" type="button" aria-label="设置" title="设置">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

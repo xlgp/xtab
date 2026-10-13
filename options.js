@@ -69,6 +69,7 @@ function rebuildDefaultSelect() {
 function buildClock() {
   $("clk-sec").checked = settings.clock.showSeconds;
   $("clk-date").checked = settings.clock.showDate;
+  $("lunar-enabled").checked = settings.lunar?.enabled !== false;
 }
 
 function buildBackground() {
@@ -151,6 +152,8 @@ async function save() {
   settings.defaultEngine = +$("default-engine").value || 0;
   settings.clock.showSeconds = $("clk-sec").checked;
   settings.clock.showDate = $("clk-date").checked;
+  if (!settings.lunar) settings.lunar = {};
+  settings.lunar.enabled = $("lunar-enabled").checked;
   settings.background.type = $("bg-type").value;
   settings.background.onlineInterval = +$("bg-interval").value || 0;
   settings.background.blur = +$("bg-blur").value;
