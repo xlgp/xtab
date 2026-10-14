@@ -4,8 +4,8 @@ import { loadSettings } from "./modules/settings.js";
 import { initClock } from "./modules/clock.js";
 import { initSearch } from "./modules/search.js";
 import { applyBackground, refreshBackground, startBackgroundRotation } from "./modules/background.js";
-import { getWeather, codeToInfo, fmtSun } from "./modules/weather.js";
-import { applyDayNight, getPhase, WeatherFX, initSky, updateSky } from "./modules/effects.js";
+import { getWeather, codeToInfo, fmtSun, readWeatherCache } from "./modules/weather.js";
+import { applyDayNight, getPhase, WeatherFX, initSky, updateSky, startSkyLoop } from "./modules/effects.js";
 import { renderQuickLinks } from "./modules/quicklinks.js";
 import { initPoetry } from "./modules/poetry.js";
 
@@ -20,10 +20,14 @@ initPoetry(settings);
 
 const fx = new WeatherFX();
 initSky();
-let weatherData = null;
+// 首屏先用上次缓存的天气（真实日出日落）渲染；无缓存时 weatherData 为 null，
+// updateDayNight 才走 6:00/18:00 兜底（仅首次安装会出现，之后刷新不再跳位）
+let weatherData = await readWeatherCache();
 
-// 首屏先用兜底时刻渲染天空，天气返回后 refreshWeather 会再校正
+// 首屏渲染：weatherData 已尽量用缓存（真实日出日落），无缓存才走 6:00/18:00 兜底；
+// 网络天气返回后 refreshWeather 会再校正（日出日落日间变化极小，不会再跳位）
 updateDayNight();
+startSkyLoop(); // rAF 实时驱动日月位置（每帧平滑，不靠长过渡补间）
 
 // 昼夜/天空驱动：天气数据缺失时按 6:00/18:00 兜底，日月照常运转
 function updateDayNight() {

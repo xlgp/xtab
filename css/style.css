@@ -66,8 +66,8 @@ body {
   border-radius: 50%;
   opacity: 0;
   will-change: transform;
+  /* 位置由 rAF 每帧实时驱动，不再依赖 CSS 长过渡补间 */
   transition:
-    transform 61s linear,
     opacity 1.4s ease,
     box-shadow 2s ease;
 }
@@ -105,7 +105,7 @@ body {
   border-radius: 50%;
   background: radial-gradient(circle, #0a0f28 0%, #070b1e 100%);
   opacity: 0.96;
-  transition: transform 61s linear;
+  /* 月相由 rAF 每帧连续更新，无需长过渡 */
 }
 
 .stars {

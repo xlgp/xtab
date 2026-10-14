@@ -68,6 +68,13 @@ async function fetchWeather(lat, lon) {
   };
 }
 
+// 读取上次成功缓存的天气（含日出日落）。供首屏立即渲染，
+// 避免网络返回前用 6:00/18:00 兜底时刻导致刷新页面时太阳跳位。
+export async function readWeatherCache() {
+  const c = await chrome.storage.local.get("weatherCache");
+  return c.weatherCache || null;
+}
+
 export async function getWeather(settings) {
   const w = settings.weather;
 
@@ -96,8 +103,7 @@ export async function getWeather(settings) {
     return payload;
   } catch (e) {
     // 离线 / 失败 → 用缓存
-    const cached = await chrome.storage.local.get("weatherCache");
-    return cached.weatherCache || null;
+    return readWeatherCache();
   }
 }
 

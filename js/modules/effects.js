@@ -127,12 +127,18 @@ export function initSky() {
   });
 }
 
-export function updateSky(now, sunrise, sunset, effect = "clear") {
-  if (!sky) return;
-  const { overlay, sun, moon, shadow, starsA, starsB } = sky;
-  const targets = [sun, moon, shadow, starsA, starsB, overlay].filter(Boolean);
-  if (skyFirst) targets.forEach((el) => el.classList.add("sky-noanim"));
+// 缓存最近一次日出日落与天气，供 rAF 每帧独立驱动日月位置
+let skyCache = null;
+let skyRAF = null;
 
+// 归位插值状态：页面隐藏后恢复，日月从“上次渲染时刻位置”平滑带到“当前真实位置”
+let lastFrameMs = 0;     // 上一帧渲染的真实时间戳
+let catchupStartMs = 0;  // 归位动画开始时间戳
+let catchupFromMs = 0;   // 归位起点对应的真实时间（隐藏前最后渲染时刻）
+const CATCHUP_MS = 900;  // 归位时长：短隐藏=柔和滑动，长隐藏=快速划过归位
+
+// 计算某时刻日月在椭圆轨道上的位置参数（纯函数，实时渲染与归位插值共用）
+function computePositions(now, sr, ss) {
   const W = window.innerWidth;
   const H = window.innerHeight;
   const cx = W / 2;
@@ -140,35 +146,65 @@ export function updateSky(now, sunrise, sunset, effect = "clear") {
   const rx = W / 2;
   const ry = H * 0.85; // 顶点距顶 15% 页高，任何宽高比都不会飞出去
 
-  // 太阳：p 允许超出 [0,1]，θ 连续 → hs = sinθ 带符号高度角
-  const dayMs = sunset.getTime() - sunrise.getTime();
-  const p = (now.getTime() - sunrise.getTime()) / dayMs;
+  const dayMs = ss.getTime() - sr.getTime();
+  const p = (now.getTime() - sr.getTime()) / dayMs;
   const th = Math.PI * (1 - p);
   const hs = Math.sin(th);
   const isMorning = p < 0.5;
 
-  // 月亮：夜晚进度（夜长 = 24h - 昼长）
   const nightMs = 24 * 3600 * 1000 - dayMs;
   let pm = -1;
-  if (p >= 1) pm = (now.getTime() - sunset.getTime()) / nightMs; // 日落后
-  else if (p <= 0) pm = (now.getTime() - (sunset.getTime() - 86400000)) / nightMs; // 日出前
+  if (p >= 1) pm = (now.getTime() - ss.getTime()) / nightMs; // 日落后
+  else if (p <= 0) pm = (now.getTime() - (ss.getTime() - 86400000)) / nightMs; // 日出前
   const inNight = pm >= 0 && pm <= 1;
   const thm = Math.PI * (1 - clamp01(pm));
   const hm = inNight ? Math.sin(thm) : 0;
 
-  // 位置（椭圆参数方程；θ: π→0，左地平线 → 顶点 → 右地平线）
-  sun.style.transform = `translate(${cx + rx * Math.cos(th)}px, ${cy - ry * hs}px) translate(-50%,-50%)`;
-  if (inNight) {
-    moon.style.transform = `translate(${cx + rx * Math.cos(thm)}px, ${cy - ry * hm}px) translate(-50%,-50%)`;
+  return {
+    cx, cy, rx, ry,
+    sunX: cx + rx * Math.cos(th), sunY: cy - ry * hs,
+    moonX: cx + rx * Math.cos(thm), moonY: cy - ry * hm,
+    hs, hm, inNight, isMorning,
+  };
+}
+
+export function updateSky(now, sunrise, sunset, effect = "clear") {
+  if (!sky) return;
+  skyCache = { sr: sunrise, ss: sunset, effect };
+  const { sun, moon, shadow, starsA, starsB, overlay } = sky;
+  const targets = [sun, moon, shadow, starsA, starsB, overlay].filter(Boolean);
+  if (skyFirst) targets.forEach((el) => el.classList.add("sky-noanim"));
+  paintSky(now, sunrise, sunset, effect, 1); // 整帧即时渲染（首屏 / 天气刷新 / 效果变化）
+  if (skyFirst) {
+    void sun.offsetWidth; // 强制 reflow 后再放开过渡
+    targets.forEach((el) => el.classList.remove("sky-noanim"));
+    skyFirst = false;
   }
+}
+
+// 把某时刻的天色/日月样式写入 DOM。归位插值时 tScale<1 且传入 fromPos，
+// 仅日月坐标在 fromPos→目标 间插值，天色与亮度取目标时刻（天色另有 2s 背景过渡）。
+function paintSky(now, sr, ss, effect, tScale, fromPos) {
+  if (!sky) return;
+  const { overlay, sun, moon, shadow, starsA, starsB } = sky;
+  const pos = computePositions(now, sr, ss);
+  let sx = pos.sunX, sy = pos.sunY, mx = pos.moonX, my = pos.moonY;
+  if (fromPos && tScale < 1) {
+    sx = fromPos.sunX + (pos.sunX - fromPos.sunX) * tScale;
+    sy = fromPos.sunY + (pos.sunY - fromPos.sunY) * tScale;
+    mx = fromPos.moonX + (pos.moonX - fromPos.moonX) * tScale;
+    my = fromPos.moonY + (pos.moonY - fromPos.moonY) * tScale;
+  }
+  sun.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
+  moon.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
 
   // 天色 overlay 连续插值
-  overlay.style.background = rgba(skyTint(hs, isMorning));
+  overlay.style.background = rgba(skyTint(pos.hs, pos.isMorning));
 
   // 太阳：贴地平线淡入/出，光晕近地平线更大更橙
   const dim = WEATHER_DIM[effect] ?? 1;
-  const up = clamp01(hs);
-  sun.style.opacity = clamp01(hs / 0.05) * (0.55 + 0.45 * dim);
+  const up = clamp01(pos.hs);
+  sun.style.opacity = clamp01(pos.hs / 0.05) * (0.55 + 0.45 * dim);
   const gc = mixColor(SUN_GLOW_LOW, SUN_GLOW_HIGH, up);
   const ga = (0.3 + 0.45 * (1 - up)) * dim;
   const gs = 90 + 70 * (1 - up);
@@ -182,21 +218,46 @@ export function updateSky(now, sunrise, sunset, effect = "clear") {
     const pct = f < 0.5 ? -200 * f : 200 * (1 - f);
     shadow.style.transform = `translateX(${pct.toFixed(2)}%)`;
   }
-  moon.style.opacity = inNight ? clamp01(hm / 0.06) * (0.35 + 0.65 * k) * (0.5 + 0.5 * dim) : 0;
-  moon.style.boxShadow = inNight
+  moon.style.opacity = pos.inNight ? clamp01(pos.hm / 0.06) * (0.35 + 0.65 * k) * (0.5 + 0.5 * dim) : 0;
+  moon.style.boxShadow = pos.inNight
     ? `0 0 ${(26 + 46 * k) | 0}px ${(10 + 16 * k) | 0}px rgba(190,205,255,${((0.08 + 0.26 * k) * dim).toFixed(3)})`
     : "none";
 
   // 星星：入夜渐显，阴天衰减
-  const sv = clamp01((-hs - 0.03) / 0.15) * (STAR_VIS[effect] ?? 1);
+  const sv = clamp01((-pos.hs - 0.03) / 0.15) * (STAR_VIS[effect] ?? 1);
   starsA.style.opacity = sv;
   starsB.style.opacity = sv * 0.8;
+}
 
-  if (skyFirst) {
-    void sun.offsetWidth; // 强制 reflow 后再放开过渡
-    targets.forEach((el) => el.classList.remove("sky-noanim"));
-    skyFirst = false;
-  }
+// 实时驱动循环：每帧用当前真实时间刷新日月，正常显示时天然逐帧平滑（每帧位移极小）。
+// 若检测到“时间跳跃”（隐藏/息屏后恢复，rAF 暂停导致帧间隔过大），则启动归位插值，
+// 把日月从“上次渲染时刻位置”在 CATCHUP_MS 内平滑带到“当前真实位置”，消除瞬间跳跃。
+// 归位由驱动循环自身完成，不依赖 visibilitychange 时机，彻底避免被后续帧抢跑。
+export function startSkyLoop() {
+  if (!sky || skyRAF) return;
+  const loop = () => {
+    if (skyCache) {
+      const now = new Date();
+      const nowMs = now.getTime();
+      if (lastFrameMs && nowMs - lastFrameMs > 2000) {
+        // 时间跳跃：进入归位模式（起点 = 隐藏前最后渲染时刻）
+        catchupFromMs = lastFrameMs;
+        catchupStartMs = nowMs;
+      }
+      if (catchupStartMs && nowMs - catchupStartMs < CATCHUP_MS) {
+        const t = (nowMs - catchupStartMs) / CATCHUP_MS;
+        const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // easeInOutQuad
+        const fromPos = computePositions(new Date(catchupFromMs), skyCache.sr, skyCache.ss);
+        paintSky(now, skyCache.sr, skyCache.ss, skyCache.effect, e, fromPos);
+      } else {
+        catchupStartMs = 0;
+        paintSky(now, skyCache.sr, skyCache.ss, skyCache.effect, 1);
+      }
+      lastFrameMs = nowMs;
+    }
+    skyRAF = requestAnimationFrame(loop);
+  };
+  skyRAF = requestAnimationFrame(loop);
 }
 
 // Canvas 粒子系统：一种效果同时只跑一个实例
