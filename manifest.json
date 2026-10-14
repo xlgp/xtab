@@ -3,6 +3,20 @@
   "name": "闲窗",
   "version": "0.1.0",
   "description": "静心新标签页：多引擎搜索、秒级时钟、天气、昼夜与日月、农历干支、诗词与轮换壁纸，开页即获片刻安宁",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
