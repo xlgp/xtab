@@ -278,7 +278,7 @@ body {
   background-repeat: no-repeat;
 }
 
-#search-suggestions li:hover,
+/* 高亮只由 JS 维护的 .active 决定（鼠标悬停也写入同一状态），避免出现两行高亮 */
 #search-suggestions li.active {
   background-color: rgba(255, 255, 255, 0.12);
 }
