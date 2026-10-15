@@ -63,8 +63,9 @@ async function fetchWeather(lat, lon) {
     wind: j.current.wind_speed_10m,
     code: j.current.weather_code,
     isDay: j.current.is_day === 1,
-    sunrise: j.daily.sunrise[0],
-    sunset: j.daily.sunset[0],
+    // 仅存时分（与日期解耦），定位时再绑定到当天，避免缓存跨天导致日出日落错位
+    sunrise: j.daily.sunrise[0].slice(11, 16),
+    sunset: j.daily.sunset[0].slice(11, 16),
   };
 }
 
@@ -107,7 +108,12 @@ export async function getWeather(settings) {
   }
 }
 
-export function fmtSun(iso) {
-  // "2026-10-10T06:12" → Date
-  return new Date(iso);
+export function fmtSun(sun, baseDate) {
+  // 日出日落只存时分（"06:12"）。定位时绑定到 baseDate 当天，缓存跨天也不会错位。
+  // 兼容旧缓存仍是带日期的 ISO（"2026-10-10T06:12"）：取其后 5 位时分即可。
+  const hhmm = sun.length > 8 ? sun.slice(11, 16) : sun;
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date(baseDate);
+  d.setHours(h || 0, m || 0, 0, 0);
+  return d;
 }

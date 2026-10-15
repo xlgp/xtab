@@ -34,8 +34,8 @@ function updateDayNight() {
   const now = new Date();
   let sr, ss;
   if (weatherData && weatherData.sunrise) {
-    sr = fmtSun(weatherData.sunrise);
-    ss = fmtSun(weatherData.sunset);
+    sr = fmtSun(weatherData.sunrise, now);
+    ss = fmtSun(weatherData.sunset, now);
   } else {
     sr = new Date(now);
     sr.setHours(6, 0, 0, 0);
@@ -53,10 +53,17 @@ function updateEffect() {
   fx.start(effect);
 }
 
+let weatherRefreshing = false;
 async function refreshWeather() {
-  weatherData = await getWeather(settings);
-  updateDayNight();
-  updateEffect();
+  if (weatherRefreshing) return; // 防重入：避免定时/可见性恢复/初始并发多次请求
+  weatherRefreshing = true;
+  try {
+    weatherData = await getWeather(settings);
+    updateDayNight();
+    updateEffect();
+  } finally {
+    weatherRefreshing = false;
+  }
 }
 
 document.getElementById("settings-btn")?.addEventListener("click", () => {
@@ -113,4 +120,10 @@ let skyResizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(skyResizeTimer);
   skyResizeTimer = setTimeout(updateDayNight, 200);
+});
+
+// 页面从隐藏恢复（切走标签页 / 息屏）：补请求一次天气，刷新温度与天气效果；
+// 日出日落已与日期解耦（仅存时分），恢复时 sr/ss 绑定当天，日月不会因此跳位。
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshWeather();
 });
