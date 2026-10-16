@@ -269,6 +269,7 @@ export class WeatherFX {
     this.effect = null;
     this.particles = [];
     this.flash = 0;
+    this._lastFrame = 0; // 上一帧时间戳，用于把步长归一化到 60fps
     this._onResize = () => this.resize();
     window.addEventListener("resize", this._onResize);
     this.resize();
@@ -293,17 +294,20 @@ export class WeatherFX {
     this.raf = null;
     this.effect = null;
     this.particles = [];
+    this._lastFrame = 0;
     this.ctx.clearRect(0, 0, this.w || 0, this.h || 0);
   }
 
   initRain() {
-    const n = Math.round(this.w / 4);
+    // 密度/长度/速度按「柔和可视」调校：此前 w/4（约 480 条）+ 10~28px + 6~14px/帧，
+    // 又密又快又长，久看刺眼
+    const n = Math.round(this.w / 12);
     for (let i = 0; i < n; i++) {
       this.particles.push({
         x: Math.random() * this.w,
         y: Math.random() * this.h,
-        len: 10 + Math.random() * 18,
-        speed: 6 + Math.random() * 8,
+        len: 6 + Math.random() * 10,
+        speed: 1.8 + Math.random() * 2.6,
       });
     }
   }
@@ -323,17 +327,21 @@ export class WeatherFX {
 
   loop() {
     const ctx = this.ctx;
+    // 步长归一化到 60fps：高刷屏（120/144Hz）不会再快一倍；上限 3 防隐藏恢复后一次性跳跃
+    const nowMs = performance.now();
+    const dt = this._lastFrame ? Math.min((nowMs - this._lastFrame) / 16.667, 3) : 1;
+    this._lastFrame = nowMs;
     ctx.clearRect(0, 0, this.w, this.h);
 
     if (this.effect === "rain" || this.effect === "thunder") {
-      ctx.strokeStyle = "rgba(174,194,224,0.5)";
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(174,194,224,0.42)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
       for (const p of this.particles) {
         ctx.moveTo(p.x, p.y);
         ctx.lineTo(p.x + 1.5, p.y + p.len);
-        p.y += p.speed;
-        p.x += 0.4;
+        p.y += p.speed * dt;
+        p.x += 0.4 * dt;
         if (p.y > this.h) {
           p.y = -p.len;
           p.x = Math.random() * this.w;
@@ -346,9 +354,9 @@ export class WeatherFX {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
-        p.y += p.speed;
-        p.x += Math.sin(p.drift) * 0.6;
-        p.drift += 0.01;
+        p.y += p.speed * dt;
+        p.x += Math.sin(p.drift) * 0.6 * dt;
+        p.drift += 0.01 * dt;
         if (p.y > this.h) {
           p.y = -p.r;
           p.x = Math.random() * this.w;
@@ -361,7 +369,7 @@ export class WeatherFX {
       if (this.flash > 0) {
         ctx.fillStyle = `rgba(255,255,255,${this.flash})`;
         ctx.fillRect(0, 0, this.w, this.h);
-        this.flash -= 0.04;
+        this.flash -= 0.04 * dt;
       } else if (Math.random() < 0.004) {
         this.flash = 0.6;
       }

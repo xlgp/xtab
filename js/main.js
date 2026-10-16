@@ -1,7 +1,7 @@
 // 入口：装配所有模块。加载设置 → 渲染各模块 → 拉天气 → 驱动昼夜与粒子。
 
 import { loadSettings } from "./modules/settings.js";
-import { initClock } from "./modules/clock.js";
+import { initClock, renderLunarWeather } from "./modules/clock.js";
 import { initSearch } from "./modules/search.js";
 import { applyBackground, refreshBackground, startBackgroundRotation } from "./modules/background.js";
 import { getWeather, codeToInfo, fmtSun, readWeatherCache } from "./modules/weather.js";
@@ -23,6 +23,7 @@ initSky();
 // 首屏先用上次缓存的天气（真实日出日落）渲染；无缓存时 weatherData 为 null，
 // updateDayNight 才走 6:00/18:00 兜底（仅首次安装会出现，之后刷新不再跳位）
 let weatherData = await readWeatherCache();
+renderLunarWeather(weatherData); // 首屏即用缓存显示徽标右侧天气（无缓存则隐藏）
 
 // 首屏渲染：weatherData 已尽量用缓存（真实日出日落），无缓存才走 6:00/18:00 兜底；
 // 网络天气返回后 refreshWeather 会再校正（日出日落日间变化极小，不会再跳位）
@@ -61,6 +62,7 @@ async function refreshWeather() {
     weatherData = await getWeather(settings);
     updateDayNight();
     updateEffect();
+    renderLunarWeather(weatherData); // 刷新徽标右侧天气中文与 MSN 链接
   } finally {
     weatherRefreshing = false;
   }

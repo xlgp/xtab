@@ -48,8 +48,11 @@
 
   <div id="bg-toast" role="status" aria-live="polite"></div>
 
-  <!-- 左上角：农历（汉字数字年月日）+ 干支三柱（年/月/日） -->
-  <div id="lunar-badge" aria-hidden="true"></div>
+  <!-- 左上角：农历（汉字数字年月日）+ 干支三柱（年/月/日）+ 右侧天气（链接 MSN 天气） -->
+  <div id="lunar-badge">
+    <span id="lunar-text"></span>
+    <a id="lunar-weather" hidden target="_blank" rel="noopener"></a>
+  </div>
 
   <button id="settings-btn" type="button" aria-label="设置" title="设置">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
