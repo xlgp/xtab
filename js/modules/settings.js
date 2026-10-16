@@ -31,6 +31,7 @@ export const DEFAULTS = {
     lon: 120.1551,
     useGeolocation: false,
     updateInterval: 30, // 分钟
+    showBadge: true, // 左上角徽标右侧显示天气中文（含 MSN 链接）；与农历开关独立
   },
 
   poetry: {

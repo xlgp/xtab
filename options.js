@@ -92,6 +92,7 @@ function buildWeather() {
   $("w-city").value = w.city;
   $("w-int").value = w.updateInterval;
   $("w-geo").checked = w.useGeolocation;
+  $("w-badge").checked = w.showBadge !== false;
 }
 
 function buildPoetry() {
@@ -172,6 +173,7 @@ async function save() {
   settings.weather.city = city || settings.weather.city;
   settings.weather.updateInterval = +$("w-int").value || 30;
   settings.weather.useGeolocation = $("w-geo").checked;
+  settings.weather.showBadge = $("w-badge").checked;
   settings.poetry.enabled = $("po-enabled").checked;
   settings.poetry.interval = +$("po-int").value || 30;
   settings.quickLinks = links;
