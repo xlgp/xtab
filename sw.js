@@ -1,5 +1,5 @@
-// Service Worker：处理需要跨域且读响应体的请求（搜索建议）。
-// 扩展页内部直接 fetch 会被 CORS 拦截，但 SW 在 host_permissions 内可任意读取。
+// Service Worker：仅处理搜索建议的跨域代理。
+// 背景取图在扩展页内直接 fetch（host_permissions 已豁免 CORS），不经过 SW。
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "GET_SUGGESTIONS") {

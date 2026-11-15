@@ -84,8 +84,13 @@ document.addEventListener("keydown", async (ev) => {
     if (settings.background.type !== "online" || bgFetching) return;
     bgFetching = true;
     showBgToast(true, "正在更换背景…");
-    const ok = await refreshBackground(settings);
-    showBgToast(false, ok ? "已换背景" : "换图失败，请重试");
+    const r = await refreshBackground(settings);
+    showBgToast(
+      false,
+      r.ok
+        ? (r.source ? `已换背景 · ${r.source}` : "已换背景")
+        : `换图失败：${r.error || "请重试"}`
+    );
     bgFetching = false;
   }
 });

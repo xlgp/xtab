@@ -30,6 +30,9 @@
     "https://geocoding-api.open-meteo.com/*",
     "https://www.google.com/*",
     "https://picsum.photos/*",
+    "https://*.picsum.photos/*",
+    "https://*.bing.com/*",
+    "https://images.unsplash.com/*",
     "https://www.baidu.com/*",
     "https://v1.jinrishici.com/*"
   ]
