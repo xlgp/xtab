@@ -1,5 +1,7 @@
-// 设置：默认值 + 读写（chrome.storage.local）
+// 设置：默认值 + 读写（统一 KV 存储）
 // 所有偏好集中在此，模块只读取、options 页负责写回。
+
+import { get, set } from "./store.js";
 
 export const DEFAULTS = {
   searchEngines: [
@@ -72,10 +74,10 @@ function deepMerge(base, over) {
 }
 
 export async function loadSettings() {
-  const stored = await chrome.storage.local.get("settings");
-  return deepMerge(DEFAULTS, stored.settings);
+  const stored = await get("settings");
+  return deepMerge(DEFAULTS, stored);
 }
 
 export async function saveSettings(settings) {
-  await chrome.storage.local.set({ settings });
+  await set("settings", settings);
 }

@@ -1,4 +1,4 @@
-// 设置页：编辑所有偏好，保存到 chrome.storage.local。
+// 设置页：编辑所有偏好，保存到统一 KV 存储。
 // 城市改变时自动 geocode 更新经纬度；搜索引擎/链接支持增删。
 
 import { loadSettings, saveSettings } from "./js/modules/settings.js";

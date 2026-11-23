@@ -1,6 +1,8 @@
 // 天气：Open-Meteo（免 Key、CORS 友好）。
 // 当前天气 + 日出日落；城市名经其 geocoding 接口转经纬度。结果缓存，离线可用上次数据。
 
+import { get, set } from "./store.js";
+
 const FORECAST_API = "https://api.open-meteo.com/v1/forecast";
 const GEO_API = "https://geocoding-api.open-meteo.com/v1/search";
 
@@ -72,8 +74,7 @@ async function fetchWeather(lat, lon) {
 // 读取上次成功缓存的天气（含日出日落）。供首屏立即渲染，
 // 避免网络返回前用 6:00/18:00 兜底时刻导致刷新页面时太阳跳位。
 export async function readWeatherCache() {
-  const c = await chrome.storage.local.get("weatherCache");
-  return c.weatherCache || null;
+  return get("weatherCache");
 }
 
 export async function getWeather(settings) {
@@ -100,7 +101,7 @@ export async function getWeather(settings) {
     const { lat, lon, name } = await resolveCoord();
     const data = await fetchWeather(lat, lon);
     const payload = { ...data, city: name, ts: Date.now() };
-    await chrome.storage.local.set({ weatherCache: payload });
+    await set("weatherCache", payload);
     return payload;
   } catch (e) {
     // 离线 / 失败 → 用缓存

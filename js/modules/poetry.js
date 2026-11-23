@@ -1,6 +1,8 @@
 // 诗词：今日诗词接口（v1.jinrishici.com，免 Key、CORS 友好、长期免费）。
-// 首屏先展示缓存（chrome.storage.local）避免白等，再后台校验刷新；
+// 首屏先展示缓存（统一 KV 存储）避免白等，再后台校验刷新；
 // 按 settings.poetry.interval 周期拉取并淡入替换，失败则保留当前/缓存内容。
+
+import { get, set } from "./store.js";
 
 const POETRY_API = "https://v1.jinrishici.com/all.json";
 const CACHE_KEY = "poetryCache";
@@ -61,13 +63,13 @@ export async function initPoetry(settings) {
         author: j.author || "",
         ts: Date.now(),
       };
-      await chrome.storage.local.set({ [CACHE_KEY]: poem });
+      await set(CACHE_KEY, poem);
       render(poem, true);
     } catch {
       // 拉取失败：当前已有内容则不动；否则回退到缓存，再不行保留默认文案
       if (!current) {
-        const cached = await chrome.storage.local.get(CACHE_KEY);
-        if (cached[CACHE_KEY]) render(cached[CACHE_KEY], false);
+        const cached = await get(CACHE_KEY);
+        if (cached) render(cached, false);
       }
     }
   }
@@ -75,8 +77,7 @@ export async function initPoetry(settings) {
   const intervalMin = Math.max(1, Number(cfg.interval) || 30);
 
   // 首屏：缓存即刻展示，过期/缺失再后台拉取
-  const cached = await chrome.storage.local.get(CACHE_KEY);
-  const c = cached[CACHE_KEY];
+  const c = await get(CACHE_KEY);
   if (c && c.content) {
     render(c, false);
     const stale = Date.now() - (c.ts || 0) > intervalMin * 60 * 1000;

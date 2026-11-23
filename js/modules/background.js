@@ -51,7 +51,7 @@ function crossfadeTo(url, b) {
 
 // ---------- 在线图源：多源自动降级 ----------
 // Picsum 在国内常超时；Bing 每日壁纸（cn.bing.com）与 Unsplash 精选图集作备用。
-// 状态放 localStorage（同步、不依赖 chrome.storage 可用性），失败源 1h 内降权。
+// 状态直放同源 Web Storage（同步读写，两端通用），失败源 1h 内降权。
 
 const SOURCES = [
   { id: "picsum", label: "Picsum", timeout: 6000 },

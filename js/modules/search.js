@@ -98,8 +98,10 @@ export function initSearch(settings) {
   }
 
   function fetchSuggestions(q) {
-    chrome.runtime.sendMessage({ type: "GET_SUGGESTIONS", q }, (resp) => {
-      if (chrome.runtime.lastError || !resp || !resp.ok || !resp.list.length) {
+    const rt = globalThis.chrome?.runtime;
+    if (!rt?.sendMessage) return; // 普通网页无 SW 代理，静默关闭建议
+    rt.sendMessage({ type: "GET_SUGGESTIONS", q }, (resp) => {
+      if (rt.lastError || !resp || !resp.ok || !resp.list.length) {
         hideSuggestions();
         return;
       }

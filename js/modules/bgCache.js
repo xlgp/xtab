@@ -1,5 +1,5 @@
 // 背景图缓存：用 IndexedDB 存 Blob，避免每次打开新标签都重新拉图。
-// 比 chrome.storage.local 更适合存二进制大图，无 5MB 顾虑。
+// 比 KV 存储更适合存二进制大图，无配额顾虑。
 
 const DB_NAME = "xtab-bg";
 const STORE = "images";

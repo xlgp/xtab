@@ -22,7 +22,7 @@
 
 - Chrome 扩展 Manifest V3
 - 原生 JavaScript（ES Modules），无框架、无构建步骤，直接加载
-- `chrome.storage.local` 持久化设置与缓存
+- `window.localStorage` 持久化设置与缓存（扩展页 / 普通网页两端通用）
 - Canvas 2D 天气粒子；CSS 变量驱动昼夜主题
 - 免费数据源（均免 API Key）：
   - 诗词：[今日诗词](https://v1.jinrishici.com) `v1.jinrishici.com`
@@ -39,6 +39,7 @@
 - 全部失败时保留当前缓存图或渐变，不显示错误图。
 - Bing / Unsplash 为兜底，图库规模小于 Picsum：Bing 每日一图、Unsplash 内置 16 张固定 ID（免 API Key，均带 `ACAO:*`）。
 - 改过 `manifest.json` 后需在 `chrome://extensions` 重新加载扩展，Bing 接口才拿到权限；不重载时 Unsplash 仍可直接出图。
+- 普通网页端没有 `host_permissions` 豁免，`HPImageArchive.aspx` 会被 CORS 拦下；Picsum / Unsplash 带 `ACAO` 可直连，`fetch` 全挂时仍有 `<img>` + CSS 直连兜底，背景功能不至于失效。
 
 ## 📁 目录结构
 
@@ -61,6 +62,7 @@ xtab/
         ├── lunar.js       # 农历干支（查表法，八字三柱）
         ├── quicklinks.js  # 快捷链接
         ├── settings.js    # 设置模型
+        ├── store.js       # 统一 KV 存储（两端通用）
         └── bgCache.js     # 背景缓存
 ```
 
@@ -89,7 +91,7 @@ xtab/
 
 - 天气使用 Open-Meteo 公开接口；若开启「定位」，仅向该接口发送经纬度以获取当地天气，不留存、不上传其他信息。
 - 诗词、背景图均为公开免费服务。
-- 所有个人设置仅保存在本地 `chrome.storage.local`，不上传任何第三方服务器。
+- 所有个人设置仅保存在本地 `window.localStorage`，不上传任何第三方服务器。
 
 ## 📄 许可证
 
