@@ -5,6 +5,23 @@ import { loadSettings, saveSettings } from "./js/modules/settings.js";
 
 const $ = (id) => document.getElementById(id);
 
+// 版本号取自 manifest.json：扩展页与普通网页同源可读，避免两处手工同步。
+// 读不到（离线 / file://）时保持隐藏，不展示可能过期的版本号。
+async function initVersion() {
+  const el = $("app-version");
+  if (!el) return;
+  try {
+    const r = await fetch(new URL("./manifest.json", import.meta.url), { cache: "no-store" });
+    if (!r.ok) return;
+    const m = await r.json();
+    if (!m.version) return;
+    el.textContent = "v" + m.version;
+    el.hidden = false;
+  } catch {
+    /* 清单不可用时徽标保持隐藏 */
+  }
+}
+
 function el(tag, props = {}, children = []) {
   const e = document.createElement(tag);
   Object.assign(e, props);
@@ -181,6 +198,12 @@ async function save() {
   await saveSettings(settings);
   $("saved").textContent = "已保存 ✓";
   setTimeout(() => ($("saved").textContent = ""), 2000);
+
+  // 嵌在首页抽屉里时通知父页面：关闭抽屉后统一刷新，让设置生效
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: "xtab:settings-saved" }, "*");
+  }
 }
 
 init();
+initVersion();

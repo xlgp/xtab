@@ -19,6 +19,26 @@ body {
 header h1 {
   margin: 0 0 4px;
   font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ver {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.ver[hidden] {
+  display: none;
 }
 .hint {
   margin: 0 0 20px;
@@ -91,11 +111,24 @@ header h1 {
   cursor: pointer;
 }
 .savebar {
+  /* 固定在视口底部（iframe 抽屉内即抽屉底部），宽度和卡片同轴对齐 */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   max-width: 720px;
   margin: 0 auto;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   gap: 14px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 24px rgba(31, 35, 41, 0.08);
+}
+
+.savebar .btn {
+  margin-top: 0;
 }
 .saved {
   color: #1d9e75;

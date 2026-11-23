@@ -8,6 +8,7 @@ import { getWeather, codeToInfo, fmtSun, readWeatherCache } from "./modules/weat
 import { applyDayNight, getPhase, WeatherFX, initSky, updateSky, startSkyLoop } from "./modules/effects.js";
 import { renderQuickLinks } from "./modules/quicklinks.js";
 import { initPoetry } from "./modules/poetry.js";
+import { initSettingsOverlay, isSettingsOverlayOpen } from "./modules/settingsOverlay.js";
 
 const settings = await loadSettings();
 
@@ -68,14 +69,8 @@ async function refreshWeather() {
   }
 }
 
-document.getElementById("settings-btn")?.addEventListener("click", () => {
-  // 扩展内打开 options 页；普通网页没有 chrome.runtime，直接跳同源设置页
-  if (globalThis.chrome?.runtime?.openOptionsPage) {
-    chrome.runtime.openOptionsPage();
-  } else {
-    location.href = "options.html";
-  }
-});
+// 设置抽屉：首页内嵌 options.html（iframe），保存后关闭即刷新生效
+initSettingsOverlay();
 
 // 手动换背景：按 B（输入框聚焦时不触发，避免与搜索输入冲突）
 let bgFetching = false;
@@ -84,6 +79,7 @@ document.addEventListener("keydown", async (ev) => {
   const typing =
     ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.isContentEditable);
   if (typing) return;
+  if (isSettingsOverlayOpen()) return; // 抽屉打开时不响应换图快捷键
   if (ev.key === "b" || ev.key === "B") {
     ev.preventDefault();
     if (settings.background.type !== "online" || bgFetching) return;
