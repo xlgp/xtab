@@ -1,7 +1,7 @@
 // 时钟：秒级刷新，用 rAF 对齐到整秒边界，避免 setInterval 累积漂移。
 // 休眠唤醒后 rAF 自动校正，不丢秒。
 
-import { getLunarBadgeText } from "./lunar.js";
+import { getLunarParts } from "./lunar.js";
 import { codeToInfo } from "./weather.js";
 
 const WEEK = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
@@ -14,7 +14,9 @@ let lastWeather = null;
 export function initClock(settings) {
   const timeEl = document.getElementById("clock-time");
   const dateEl = document.getElementById("clock-date");
+  const lunarBadgeEl = document.getElementById("lunar-badge");
   const lunarTextEl = document.getElementById("lunar-text");
+  const lunarGzEl = document.getElementById("lunar-gz");
   const lunarWeatherEl = document.getElementById("lunar-weather");
   let lastLunarKey = "";
   lunarSettings = settings;
@@ -40,15 +42,24 @@ export function initClock(settings) {
     }
 
     // 左上角农历 + 干支徽标：按天缓存，仅日期变化时重算
-    // 注意 badge 容器内还有天气链接，故只更新 #lunar-text，不能整体覆写容器
-    if (settings.lunar?.enabled) {
+    // 农历与干分支上下两行：主行 #lunar-text，副行 #lunar-gz（小字，见 style.css）
+    // 注意 badge 容器内还有天气链接，故只更新这两个 span，不能整体覆写容器
+    const lunarOn = !!settings.lunar?.enabled;
+    if (lunarOn !== lunarBadgeEl.classList.contains("lunar-on")) {
+      lunarBadgeEl.classList.toggle("lunar-on", lunarOn);
+      lastLunarKey = ""; // 重新开启时强制重算，避免残留旧日期
+    }
+    if (lunarOn) {
       const key = `${y}-${m}-${d}`;
       if (key !== lastLunarKey) {
         lastLunarKey = key;
-        lunarTextEl.textContent = getLunarBadgeText(now);
+        const parts = getLunarParts(now);
+        lunarTextEl.textContent = parts ? parts.lunar : "";
+        lunarGzEl.textContent = parts ? parts.ganzhi : "";
       }
-    } else if (lunarTextEl.textContent) {
+    } else if (lunarTextEl.textContent || lunarGzEl.textContent) {
       lunarTextEl.textContent = "";
+      lunarGzEl.textContent = "";
     }
 
     // 天气显隐由独立的 weather.showBadge 开关控制（与农历开关解耦），

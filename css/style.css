@@ -175,37 +175,77 @@ body {
   opacity: 0.85;
 }
 
-/* 左上角：农历 + 干支三柱徽标 */
+/* 左上角：农历 + 干支三柱徽标。
+   农历为主行（13px），干支三柱降为副行（11px、略淡）——整体宽度因此从 ~420px 收到 ~280px，
+   小屏竖屏（320–360px）不再溢出；天气与主行顶对齐，隔着竖线贴在其右。
+   极端窄屏 / 系统字体放大时由 flex-wrap 兜底：天气整体折到下一行、从行首起排，绝不裁字。 */
 #lunar-badge {
   position: fixed;
   left: 20px;
   top: 16px;
   z-index: 30;
+  max-width: calc(100vw - 40px);
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0 20px;
   font-size: 13px;
   letter-spacing: 1px;
   color: var(--text);
   opacity: 0.75;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   user-select: none;
+}
+
+/* 农历主行 + 干支副行上下排列 */
+#lunar-badge .lunar-dates {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+/* 竖线画在农历块右缘（而非天气左缘）：与主行等高，折行时随农历块留下，
+   不会孤立地出现在换行后的天气前面 */
+#lunar-badge.lunar-on .lunar-dates::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -10px;
+  width: 1px;
+  height: 1.3em;
+  background: currentColor;
+}
+
+#lunar-text,
+#lunar-gz,
+#lunar-weather {
   white-space: nowrap;
 }
 
-/* 徽标右侧：天气中文（含温度），点击跳 MSN 天气。
-   竖线分隔仅在农历文本非空时出现：农历开关关闭时 span 为空，
-   天气贴左显示，不留孤立间距与竖线（两者显隐已解耦） */
+#lunar-gz {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+
+/* 农历开关关闭时不占位（class 由 clock.js 维护），天气自然贴左 */
+#lunar-badge:not(.lunar-on) .lunar-dates {
+  display: none;
+}
+
+/* 天气：与农历主行顶对齐（stretch 会拉成两行高）；
+   不设 margin-left:auto——容器 shrink-to-fit，同行时本就紧贴主列，折行时靠右反而错位 */
 #lunar-weather {
+  align-self: flex-start;
+  line-height: 1.3;
   color: inherit;
   text-decoration: none;
   cursor: pointer;
   opacity: 0.95;
 }
 
-#lunar-text:not(:empty) + #lunar-weather {
-  margin-left: 8px;
-  padding-left: 10px;
-  border-left: 1px solid currentColor;
-}
-
+/* 竖线由 .lunar-dates::after 提供，天气自身不带边框与内边距（折行后从行首起排） */
 #lunar-weather:hover {
   opacity: 1;
   text-decoration: underline;

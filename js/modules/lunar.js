@@ -218,12 +218,19 @@ function yearCN(y) {
     .join("");
 }
 
-// 返回左上角徽标文本："二〇二六年九月初四日 丙午年戊戌月庚申日"
+// 徽标拆成两段：主行农历年月日（含汉字年份）、副行干支三柱。
+// 分开返回便于窄屏上下排布（干支可降级为小字）；单行拼接形式见 getLunarBadgeText。
 // 年份数字取农历年的起始公历年；干支三柱按八字体系（年柱立春界、月柱节界、日柱连续）。
-export function getLunarBadgeText(date) {
+export function getLunarParts(date) {
   const l = solar2lunar(date);
-  if (!l) return "";
-  const md = yearCN(l.lunarYear) + "年" + chinaMonth(l.lunarMonth, l.isLeap) + chinaDay(l.lunarDay) + "日";
-  const gz = `${yearPillar(date)}年${monthPillar(date)}月${dayPillar(date)}日`;
-  return `${md} ${gz}`;
+  if (!l) return null;
+  const lunar = yearCN(l.lunarYear) + "年" + chinaMonth(l.lunarMonth, l.isLeap) + chinaDay(l.lunarDay) + "日";
+  const ganzhi = `${yearPillar(date)}年${monthPillar(date)}月${dayPillar(date)}日`;
+  return { lunar, ganzhi };
+}
+
+// 返回形如 "二〇二六年九月初四日 丙午年戊戌月庚申日" 的单行文本
+export function getLunarBadgeText(date) {
+  const p = getLunarParts(date);
+  return p ? `${p.lunar} ${p.ganzhi}` : "";
 }

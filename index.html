@@ -48,9 +48,13 @@
 
   <div id="bg-toast" role="status" aria-live="polite"></div>
 
-  <!-- 左上角：农历（汉字数字年月日）+ 干支三柱（年/月/日）+ 右侧天气（链接 MSN 天气） -->
+  <!-- 左上角：农历（汉字数字年月日）+ 干支三柱（年/月/日）+ 右侧天气（链接 MSN 天气）。
+       农历与干分支上下两行（干支为副行小字），天气紧跟主行右侧；窄屏由 CSS flex-wrap 兜底 -->
   <div id="lunar-badge">
-    <span id="lunar-text"></span>
+    <span class="lunar-dates">
+      <span id="lunar-text"></span>
+      <span id="lunar-gz"></span>
+    </span>
     <a id="lunar-weather" hidden target="_blank" rel="noopener"></a>
   </div>
 
